@@ -1,4 +1,4 @@
-import {NextFunction, Request, Response, Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import * as os from 'os';
 import * as process from 'process';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
@@ -167,14 +167,9 @@ export default class PaymentsController extends BaseApi {
 		}
 	}
 
-	public findName(
-		req: Request,
-		res: Response,
-		next: NextFunction
-	) : void{
-
+	public findName(req: Request, res: Response, next: NextFunction): void {
 		const response = {
-			name: "Jatin"
+			name: 'Jatin',
 		};
 		res.locals.data = response;
 		super.send(res);

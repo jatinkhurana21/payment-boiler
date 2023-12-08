@@ -173,14 +173,9 @@ export default class SystemStatusController extends BaseApi {
 		}
 	}
 
-	public findName(
-		req: Request,
-		res: Response,
-		next: NextFunction
-	) : void{
-
+	public findName(req: Request, res: Response, next: NextFunction): void {
 		const response = {
-			name: "Jatin"
+			name: 'Jatin',
 		};
 		res.locals.data = response;
 		super.send(res);
