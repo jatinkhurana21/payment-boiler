@@ -14,6 +14,37 @@ export default function registerRoutes(): Router {
 		new SystemStatusController();
 	router.use('/api/status', systemStatusController.register());
 
+	/*
+	Ideal flow will be,
+	-- online
+	the user click on the purchase button for a listing/landingPage
+	a form appears for the detail.
+	a user account is created for the same and token is given out in response.
+	the razorpay (any payment provider page opens then user completes the payment)
+	//
+	-- this api is pending,
+	the payment amount we recieve from razorpay back should match with equally with the amount
+	we calculated for the order, else we refund the amount.
+	//
+	if the order is a success, we call our createOrder api, to populate
+	our database.
+
+
+	-- offline
+	if a user has paid in an offline mode, using upi to owner or whatever
+	the flow should be, admin creates that user if it doesnt exist 
+	(by checking out getUserDetails api the filter will be mobile/email not userId as mentioned
+	but as i am using node-cache i cannot filter with key userId, or i can make a key with userId_mobile 
+	and search on pattern with mobile here and find out if he exist or not.)
+
+	he creates the user, and calls the createOrder api with offline mode and other details.
+
+	Note: 
+	Admin shouldnt use postman.
+	Admin should be given a admin-utility for the same where he just puts the in fields.
+	It is more safe.
+	We can use keyStone for the same, its secure and easy to maintain and use.
+	*/ 
 	router.use('/user', new UserController().register());
 	
 	router.use('/payment', new PaymentsController().register());

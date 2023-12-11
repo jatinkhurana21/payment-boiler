@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-export const isAuthenticated = async (accessToken) => {
+export const isAuthenticated = async (accessToken): Promise<{ isValid, id, role }> => {
     const TOKEN_SECRET = 'validSecret';
     const invalidResponse = {
         isValid: false,
-        id: null
+        id: null,
+        role: null
     };
     if (!accessToken) {
         return invalidResponse;
@@ -12,14 +13,15 @@ export const isAuthenticated = async (accessToken) => {
 
     const decoded: any = await jwt.verify(accessToken, TOKEN_SECRET);
 
-    if (decoded.id) {
+    if (decoded.id && decoded.role) {
         return {
             isValid: true,
-            id: decoded.id
+            id: decoded.id,
+            role: decoded.role
         };
     }
 
 
     return invalidResponse;
-    
+
 };

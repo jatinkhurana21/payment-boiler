@@ -20,6 +20,10 @@ export default class UserController extends BaseApi {
 	/**
 	 *
 	 */
+
+    // we should also make a refresh access token
+    // api for a fresh token with a longer expiry and so on., because we are making a token with an expiry.
+    // So one more api should be made for .get('/refreshAccessToken')
 	public register(): Router {
 		this.router.get('/error', this.getError.bind(this));
 		this.router.post('/create', this.createUser.bind(this));
@@ -48,18 +52,18 @@ export default class UserController extends BaseApi {
 
 	public createUser(req: Request, res: Response, next: NextFunction): any {
         const { body } = req;
-        const { mobile, email, countryCode } = body;
+        const { mobile, email, countryCode, role } = body;
         const TOKEN_SECRET = 'validSecret'
         const ACCESS_TOKEN_ALGO = 'HS384'
 
 
-        const userId = UserRepository.create({ mobile, email, countryCode, isActive: 1 });
+        const userId = UserRepository.create({ mobile, email, countryCode, role, createdAt: new Date(), isActive: 1 });
 
         const token = sign(
-            {id : userId},
+            { id: userId, role },
             TOKEN_SECRET,
             <SignOptions>{
-                expiresIn: '1d',
+                expiresIn: '7d',
                 algorithm: ACCESS_TOKEN_ALGO
             }
         );
@@ -74,49 +78,56 @@ export default class UserController extends BaseApi {
 
     public async getUser(req: Request, res: Response, next: NextFunction): Promise<any> {
         const { query } = req;
-        const { token, userId } = query;
+        const { token, queryUserId, isAdminDetails } = query;
 
-        if (token) {
+        // if token doesnt exist, its a bad request, we can also say 403 forbidden.
+        if (!token) {
+            res.locals.data = { data: null, message: 'BadRequest', statusCode: 400 };
+            super.send(res, 400)
+        }
 
-            const result = await isAuthenticated(token);
+       
 
-            if (result.isValid == false) {
-                res.locals.data = { data: null,  message: 'Forbidden', statusCode: 403};
+        const result = await isAuthenticated(token);
+
+        // if token isnt valid, or extincted, we say forbidden, we can also implement
+        // refresh access token logic for the same.
+
+        if (result.isValid == false) {
+            res.locals.data = { data: null, message: 'Forbidden', statusCode: 403 };
+            super.send(res)
+        }
+
+        if (result.role == 'admin') {
+            if (queryUserId && !isAdminDetails) {
+                const userData = UserRepository.get(queryUserId);
+
+                res.locals.data = !userData
+                    ? { data: null, message: 'User Not Found', statusCode: 204 }
+                    : res.locals.data = { data: userData, message: 'Successful fetch' };
+
                 super.send(res)
             }
-
-            const userId = result.id;
-
-            const userData = UserRepository.get(userId);
-
-            res.locals.data = !userData
-             ? { data : null, message: 'User Not Found'} 
-            : res.locals.data = {data : userData , message : 'Successful fetch'};
-            
-            super.send(res)
         }
+
+
+        const userId = result.id;
+
+        const userData = UserRepository.get(userId);
+
+        res.locals.data = !userData
+            ? { data: null, message: 'User Not Found' , statusCode: 204}
+            : res.locals.data = { data: userData, message: 'Successful fetch' };
+
+        super.send(res)
         
-        if (userId) {
-            const userData = UserRepository.get(userId);
-
-            res.locals.data = !userData
-             ? { data : null, message: 'User Not Found', statusCode: 204} 
-            : res.locals.data = {data : userData , message : 'Successful fetch'};
-
-            super.send(res)
-        }
-
-        if(!userId && !token) {
-
-        }
-        res.locals.data = { data: null,  message: 'BadRequest', statusCode: 400};
-        super.send(res, 400)
+    
     }
 
     public async updateUser(req: Request, res: Response, next: NextFunction): Promise<any>{
         const { headers , body} = req;
         const { token } = headers;
-        const { updateData } = body;
+        const { queryUserId, updateData } = body;
 
         const result = await isAuthenticated(token);
 
@@ -125,9 +136,11 @@ export default class UserController extends BaseApi {
             super.send(res)
         }
 
-        const userId = result.id;
-
-        UserRepository.update(userId, updateData);
+         // if its not admin, user cannot be updated.
+         if (result.role != 'admin') {
+            return;
+        }
+        UserRepository.update(queryUserId, updateData);
         res.locals.data = {data : null , message : 'Successful fetch'};
         super.send(res)
     }

@@ -1,19 +1,19 @@
 /*
 Payments Table:
 
-Fields: id, invoice_id, payer_id, receiver_id, amount, payment_method, status (completed, failed).
+Fields: id, invoice_id, payer_id, receiver_id, amount, payment_method, status (completed, failed), mode.
 */
 
 
 import Cache from '../cache/cache';
-
+import { ICreatePayment } from './interface'
 export default class PaymentRepository {
-    public static create(data: {payerUserId; receiverUserId; amount; method; status;}) {
+    public static create(data: ICreatePayment) {
         const { payerUserId, receiverUserId, amount, method, status } = data;
         const paymentId = Date.now();
 
         // using node cache to mock a database
-        Cache.setData(paymentId,  { payerUserId, receiverUserId, amount, method, status });
+        Cache.setData(paymentId, { payerUserId, receiverUserId, amount, method, status });
         return paymentId;
     }
 
