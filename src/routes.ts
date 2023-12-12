@@ -44,6 +44,13 @@ export default function registerRoutes(): Router {
 	Admin should be given a admin-utility for the same where he just puts the in fields.
 	It is more safe.
 	We can use keyStone for the same, its secure and easy to maintain and use.
+
+	A better option instead of just having modifiedAt in invoice table
+	We should have a paymentInvoiceMap table, where if payment is successfull
+	and we update or create entry in invoice table, we just create a mapping
+	in paymentInvoiceMap table that, this record has been updated because of this payment.
+	The payment details will be in payment table, net invoices will be in invoices table,
+	and its map we will in paymentInvoiceMap table.
 	*/ 
 	router.use('/user', new UserController().register());
 	
